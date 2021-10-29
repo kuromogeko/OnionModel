@@ -1,0 +1,99 @@
+// You can do these requests top to bottom and they will show the lifecycle of the object!
+// I did all the variable stuff for you with a little scripting
+
+//So lets get a new ShoppingCart
+POST http://localhost:9090/api/carts
+
+> {%
+client.global.set("uuid", response.body.id);
+ %}
+###
+
+// Which should be empty, right? Let's have a look
+GET http://localhost:9090/api/carts/{{uuid}}
+###
+
+// Okay, nice. So what does this store have?
+GET http://localhost:9090/api/elements
+
+> {%
+ client.global.set("elem1", response.body[0].name)
+ client.global.set("elem2", response.body[1].name)
+ client.global.set("elem3", response.body[2].name)
+ %}
+###
+
+//Do this request twice for good measure!
+PUT http://localhost:9090/api/carts/{{uuid}}/elements/{{elem1}}
+Content-Type: application/json
+
+{
+  "quantity": 3
+}
+###
+
+//Okay, changing quantity is different
+PATCH http://localhost:9090/api/carts/{{uuid}}/elements/{{elem1}}
+Content-Type: application/json
+
+{
+  "quantity": 2000
+}
+
+###
+//... :(
+PATCH http://localhost:9090/api/carts/{{uuid}}/elements/{{elem1}}
+Content-Type: application/json
+
+{
+  "quantity": 5
+}
+
+###
+// We still in budget?
+GET http://localhost:9090/api/carts/{{uuid}}/price
+
+###
+
+// Lets's get something else
+PUT http://localhost:9090/api/carts/{{uuid}}/elements/{{elem2}}
+Content-Type: application/json
+
+{
+  "quantity": 100
+}
+
+###
+// MORE!
+PUT http://localhost:9090/api/carts/{{uuid}}/elements/{{elem3}}
+Content-Type: application/json
+
+{
+  "quantity": 1
+}
+
+###
+//Wait, no.
+DELETE http://localhost:9090/api/carts/{{uuid}}/elements/{{elem3}}
+
+###
+//Any hidden items in stock?
+PUT http://localhost:9090/api/carts/{{uuid}}/elements/Magic Unicorn
+Content-Type: application/json
+
+{
+  "quantity": 100
+}
+
+###
+//Well let's go pay (Hint: Check the console)
+POST  http://localhost:9090/api/invoice
+Content-Type: application/json
+
+{
+  "id": "{{uuid}}"
+}
+
+###
+//Lets remove the cart, it's no longer needed
+DELETE http://localhost:9090/api/carts/{{uuid}}
